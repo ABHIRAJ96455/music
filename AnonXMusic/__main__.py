@@ -1,6 +1,7 @@
 import asyncio
 import importlib
 import threading
+import os
 from flask import Flask
 
 from pyrogram import idle
@@ -14,7 +15,7 @@ from AnonXMusic.plugins import ALL_MODULES
 from AnonXMusic.utils.database import get_banned_users, get_gbanned
 from config import BANNED_USERS
 
-# 🔥 Flask server (Render ke liye)
+# 🔥 Flask Server (Render Fix)
 web_app = Flask(__name__)
 
 @web_app.route("/")
@@ -22,9 +23,9 @@ def home():
     return "Bot is running"
 
 def run_web():
-    web_app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 10000))  # ✅ IMPORTANT FIX
+    web_app.run(host="0.0.0.0", port=port)
 
-# Thread me run karega (bot ke sath)
 threading.Thread(target=run_web).start()
 
 
@@ -48,12 +49,17 @@ async def init():
             BANNED_USERS.add(user_id)
     except:
         pass
+
     await app.start()
+
     for all_module in ALL_MODULES:
         importlib.import_module("AnonXMusic.plugins" + all_module)
+
     LOGGER("AnonXMusic.plugins").info("Successfully Imported Modules...")
+
     await userbot.start()
     await Anony.start()
+
     try:
         await Anony.stream_call("https://te.legra.ph/file/29f784eb49d230ab62e9e.mp4")
     except NoActiveGroupCall:
