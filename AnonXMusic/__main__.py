@@ -1,5 +1,8 @@
 import asyncio
 import importlib
+import threading
+import os
+from flask import Flask
 
 from pyrogram import idle
 from pytgcalls.exceptions import NoActiveGroupCall
@@ -11,6 +14,20 @@ from AnonXMusic.misc import sudo
 from AnonXMusic.plugins import ALL_MODULES
 from AnonXMusic.utils.database import get_banned_users, get_gbanned
 from config import BANNED_USERS
+
+# 🔥 Flask Server (Render Fix)
+web_app = Flask(__name__)
+
+@web_app.route("/")
+def home():
+    return "Bot is running"
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))  # ✅ IMPORTANT FIX
+    web_app.run(host="0.0.0.0", port=port)
+
+threading.Thread(target=run_web).start()
+
 
 async def init():
     if (
@@ -32,17 +49,22 @@ async def init():
             BANNED_USERS.add(user_id)
     except:
         pass
+
     await app.start()
+
     for all_module in ALL_MODULES:
         importlib.import_module("AnonXMusic.plugins" + all_module)
+
     LOGGER("AnonXMusic.plugins").info("Successfully Imported Modules...")
+
     await userbot.start()
     await Anony.start()
+
     try:
         await Anony.stream_call("https://te.legra.ph/file/29f784eb49d230ab62e9e.mp4")
     except NoActiveGroupCall:
         LOGGER("AnonXMusic").error(
-            "Please turn on the videochat of your log group\channel.\n\nStopping Bot..."
+            "Please turn on the videochat of your log group\\channel.\n\nStopping Bot..."
         )
         exit()
     except:
